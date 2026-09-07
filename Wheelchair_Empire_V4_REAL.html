@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Wheelchair Empire V4</title>
+<style>
+:root{--bg:#081016;--panel:#101b23eF;--line:#38505f;--text:#eef7fb;--muted:#9eb1bc;--accent:#55d6ff;--good:#69df9a;--bad:#ff7373;--gold:#ffd35c}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071017;color:var(--text);font-family:Inter,system-ui,Arial,sans-serif}
+button{border:1px solid #45606e;background:linear-gradient(#20313b,#17242c);color:#f5fbff;border-radius:9px;padding:9px 12px;cursor:pointer;font-weight:750;box-shadow:0 2px 8px #0005}
+button:hover{border-color:#69d9ff;background:linear-gradient(#29404c,#1b2b35)}button:active{transform:translateY(1px)}
+#game{position:fixed;inset:0}canvas{position:absolute;inset:0;width:100%;height:100%}
+#hud{position:absolute;inset:0;pointer-events:none}.pointer{pointer-events:auto}
+.panel{background:linear-gradient(180deg,#101c24ed,#0a1218ed);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 35px #0009, inset 0 1px #ffffff0b}
+#top{position:absolute;left:12px;right:12px;top:10px;display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+#identity{padding:10px 13px;min-width:220px}.identityName{font-size:18px;font-weight:900}.sub{font-size:12px;color:var(--muted);margin-top:2px}
+.stat{padding:10px 12px;min-width:105px}.stat .v{font-size:16px;font-weight:900}.stat small{display:block;color:var(--muted);font-size:10px}
+#topBtns{margin-left:auto;display:flex;gap:7px}
+#leftPanel{position:absolute;left:12px;top:105px;width:255px;padding:12px}
+#rightPanel{position:absolute;right:12px;top:105px;width:285px;padding:12px}
+.panelTitle{font-weight:900;font-size:14px;margin-bottom:9px;letter-spacing:.3px}.countryName{font-size:20px;font-weight:950;margin-bottom:4px}
+.row{display:flex;justify-content:space-between;gap:8px;margin:7px 0;font-size:12px}.meter{height:8px;border-radius:9px;background:#081015;overflow:hidden;border:1px solid #253943}.meter i{display:block;height:100%;background:linear-gradient(90deg,#46bfe8,#8cf0ff)}
+.actionGrid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:11px}.wide{grid-column:1/-1}
+#bottom{position:absolute;left:12px;right:12px;bottom:11px;display:flex;gap:8px;align-items:end}
+#news{padding:9px 12px;flex:1;min-width:220px}.newsTag{font-size:10px;color:var(--accent);font-weight:900}.newsText{font-size:13px;margin-top:2px}
+#mainActions{display:flex;gap:7px}.mainBtn{padding:12px 15px}
+#hint{position:absolute;top:73px;left:50%;transform:translateX(-50%);padding:7px 12px;border-radius:999px;background:#081016cc;border:1px solid #425864;color:#d8e5eb;font-size:12px}
+#modalShade{position:absolute;inset:0;background:#0009;display:none;align-items:center;justify-content:center;pointer-events:auto}
+.modal{width:min(1000px,94vw);height:min(720px,90vh);overflow:auto;padding:18px;background:#0a1319f8;border:1px solid #4b6471;border-radius:16px;box-shadow:0 25px 80px #000d}
+.modal.open{display:block}.modalHeader{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.modalHeader h2{margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.card{padding:12px;border:1px solid #334b58;border-radius:11px;background:#122029}.card.locked{opacity:.45}.card h3{margin:0 0 5px}.card p{margin:4px 0;color:#aabdc7;font-size:12px;min-height:34px}
+#techTree{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:center}.techNode{min-height:120px}.arrow{text-align:center;color:#4f6c79;font-size:22px}
+#workshop{display:grid;grid-template-columns:1fr 280px;gap:14px}.chairStage{min-height:470px;border-radius:15px;border:1px dashed #516976;background:radial-gradient(circle at 50% 45%,#233d48,#0b141a);position:relative;overflow:hidden}
+.chairVisual{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:300px;height:230px}
+.wheel{position:absolute;width:112px;height:112px;border-radius:50%;border:14px solid #25343d;background:#111a20;box-shadow:inset 0 0 0 5px #52636c,0 8px 18px #0008}
+.w1{left:12px;top:85px}.w2{right:12px;top:85px}.seat{position:absolute;left:73px;top:78px;width:154px;height:68px;border-radius:15px 15px 9px 9px;background:linear-gradient(135deg,#516875,#263842);border:4px solid #18242b}.back{position:absolute;left:87px;top:25px;width:125px;height:72px;border-radius:20px 20px 8px 8px;background:#334b57;border:4px solid #18242b}.bar{position:absolute;left:112px;top:55px;width:90px;height:8px;background:#91a6af;border-radius:9px}.attachment{position:absolute;padding:6px 8px;border-radius:8px;background:#1b2b34;border:1px solid #5f7a87;font-size:11px;font-weight:800;cursor:grab;user-select:none}
+#parts .attachment{position:relative;display:block;margin:7px 0}.dragHint{font-size:11px;color:#8fa5b0;margin-bottom:9px}
+#buildings{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}.buildCard{padding:13px;border-radius:12px;border:1px solid #3b5360;background:#12212a}
+#battle{position:absolute;inset:0;background:#0b1115;display:none;pointer-events:auto}.battleScene{position:absolute;inset:0;background:radial-gradient(circle at 50% 55%,#44555c 0,#263238 25%,#12191d 70%);overflow:hidden}
+#battleUI{position:absolute;inset:0;pointer-events:none}.battleButton{pointer-events:auto;position:absolute;bottom:20px}.attack{right:22px}.retreat{left:22px}
+.fighter{position:absolute;width:70px;height:52px;border-radius:18px;display:grid;place-items:center;font-size:30px}.bfPlayer{background:#dce6eb;border:4px solid #1a2328;box-shadow:0 8px 25px #0008}.bfEnemy{background:#a95353;border:4px solid #4c2727;box-shadow:0 8px 25px #0008}
+.hpWrap{position:absolute;top:18px;left:50%;transform:translateX(-50%);width:min(600px,75vw);height:18px;background:#281616;border:1px solid #7a4747;border-radius:10px;overflow:hidden}.hpWrap i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#ff6262,#ff9a74)}
+.battleTitle{position:absolute;top:43px;width:100%;text-align:center;font-weight:900}
+#joystick{display:none;position:absolute;left:18px;bottom:70px;width:120px;height:120px;border:2px solid #718691;border-radius:50%;background:#15232bcc;pointer-events:auto;touch-action:none}.knob{position:absolute;left:35px;top:35px;width:46px;height:46px;border-radius:50%;background:#b8c8cf}
+#toast{position:absolute;left:50%;bottom:95px;transform:translateX(-50%);padding:10px 15px;border-radius:10px;background:#0b151bcc;border:1px solid #526875;opacity:0;transition:.2s;pointer-events:none}
+@media(max-width:800px){#leftPanel{width:215px;top:130px}#rightPanel{display:none}.hint{display:none}.stat{min-width:auto;padding:8px}.stat small{display:none}#joystick{display:block}#mainActions{flex-wrap:wrap}.modal{height:94vh}#workshop{grid-template-columns:1fr}.chairStage{min-height:330px}}
+</style>
+</head>
+<body>
+<div id="game"><canvas id="world"></canvas></div>
+
+<div id="hud">
+<div id="top">
+ <div id="identity" class="panel"><div class="identityName" id="empireName">State of Wheelchair</div><div class="sub" id="identitySub">Florida • 0.5% of world controlled</div></div>
+ <div class="stat panel"><small>TREASURY</small><div class="v">💰 <span id="money">500</span></div></div>
+ <div class="stat panel"><small>CHAIR LEVEL</small><div class="v">⚙️ <span id="level">1</span></div></div>
+ <div class="stat panel"><small>WORLD CONTROL</small><div class="v">🌎 <span id="control">0.5%</span></div></div>
+ <div id="topBtns"><button class="pointer" onclick="openModal('stats')">📊 Stats</button><button class="pointer" onclick="openModal('tech')">🧠 Tech</button><button class="pointer" onclick="openModal('custom')">🦽 Customize</button></div>
+</div>
+
+<div id="leftPanel" class="panel pointer">
+ <div class="panelTitle">SELECTED COUNTRY</div>
+ <div class="countryName" id="selName">Florida</div><div class="sub" id="selDesc">Your capital and starting territory.</div>
+ <div class="row"><span>Defense</span><b id="selDefense">0</b></div><div class="meter"><i id="defMeter" style="width:2%"></i></div>
+ <div class="row"><span>Terrain</span><b id="selTerrain">Plains</b></div>
+ <div class="actionGrid"><button onclick="scoutSelected()">🔎 Scout</button><button onclick="startSelected()">⚔️ Conquer</button><button class="wide" onclick="openBuild()">🏗️ Build in Territory</button></div>
+</div>
+
+<div id="rightPanel" class="panel pointer">
+ <div class="panelTitle">EMPIRE STATUS</div>
+ <div class="row"><span>Countries</span><b id="owned">1 / 195</b></div>
+ <div class="row"><span>Income</span><b id="income">+$2 / 5 sec</b></div>
+ <div class="row"><span>Attachment slots</span><b id="slots">2</b></div>
+ <div class="row"><span>Buildings</span><b id="buildingCount">0</b></div>
+ <div class="row"><span>Rocket</span><b id="rocketStatus">Locked</b></div>
+ <hr style="border-color:#263b46;border-width:1px 0 0">
+ <div class="panelTitle">CURRENT OBJECTIVE</div><div class="sub" id="objective">Expand beyond Florida and unlock your first attachment.</div>
+</div>
+
+<div id="bottom">
+ <div id="news" class="panel"><div class="newsTag">WORLD NEWS</div><div class="newsText" id="news">Florida declares independence. The world is confused.</div></div>
+ <div id="mainActions" class="pointer"><button class="mainBtn" onclick="centerPlayer()">📍 Center</button><button class="mainBtn" onclick="openBuild()">🏗️ Build</button><button class="mainBtn" onclick="openModal('achievements')">🏆 Achievements</button></div>
+</div>
+<div id="hint">Click a country • WASD / arrow keys to drive • Mouse wheel to zoom</div>
+<div id="joystick"><div class="knob" id="knob"></div></div>
+<div id="toast"></div>
+
+<div id="modalShade">
+ <div class="modal" id="modalBox">
+  <div class="modalHeader"><h2 id="modalTitle"></h2><button onclick="closeModal()">✕</button></div>
+  <div id="modalContent"></div>
+ </div>
+</div>
+
+<div id="battle">
+ <div class="battleScene" id="battleScene"></div><div class="hpWrap"><i id="battleHP"></i></div><div class="battleTitle" id="battleTitle"></div>
+ <div id="battleUI"><button class="battleButton retreat" onclick="endBattle(false)">↩ Retreat</button><button class="battleButton attack" onclick="attack()">⚔️ ATTACK</button></div>
+</div>
+
+<script>
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+let dpr=1,W=innerWidth,H=innerHeight;
+function resize(){dpr=devicePixelRatio||1;W=innerWidth;H=innerHeight;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}addEventListener('resize',resize);resize();
+
+const countries=[
+{name:'Canada',x:95,y:105,w:225,h:105,d:110,t:'Snow'}, {name:'United States',x:135,y:220,w:205,h:115,d:120,t:'Plains'},
+{name:'Mexico',x:205,y:335,w:125,h:70,d:75,t:'Desert'}, {name:'Brazil',x:405,y:385,w:160,h:130,d:160,t:'Forest'},
+{name:'Argentina',x:435,y:515,w:80,h:95,d:90,t:'Mountains'}, {name:'United Kingdom',x:560,y:155,w:55,h:45,d:65,t:'Plains'},
+{name:'France',x:595,y:210,w:60,h:45,d:80,t:'Plains'}, {name:'Spain',x:585,y:270,w:65,h:38,d:65,t:'Plains'},
+{name:'Germany',x:655,y:200,w:58,h:55,d:105,t:'Plains'}, {name:'Italy',x:670,y:270,w:45,h:65,d:90,t:'Mountains'},
+{name:'Poland',x:715,y:205,w:70,h:45,d:85,t:'Plains'}, {name:'Norway',x:605,y:90,w:75,h:100,d:95,t:'Snow'},
+{name:'Turkey',x:735,y:295,w:90,h:52,d:110,t:'Mountains'}, {name:'Russia',x:745,y:90,w:320,h:145,d:220,t:'Snow'},
+{name:'Egypt',x:775,y:355,w:70,h:58,d:85,t:'Desert'}, {name:'Nigeria',x:635,y:385,w:80,h:75,d:105,t:'Forest'},
+{name:'DR Congo',x:690,y:450,w:95,h:100,d:100,t:'Forest'}, {name:'South Africa',x:665,y:555,w:110,h:60,d:115,t:'Plains'},
+{name:'Saudi Arabia',x:820,y:360,w:115,h:65,d:125,t:'Desert'}, {name:'India',x:900,y:355,w:100,h:110,d:175,t:'Plains'},
+{name:'China',x:950,y:245,w:165,h:135,d:205,t:'Mountains'}, {name:'Japan',x:1100,y:320,w:55,h:95,d:140,t:'Mountains'},
+{name:'Indonesia',x:990,y:475,w:120,h:58,d:120,t:'Forest'}, {name:'Australia',x:1020,y:550,w:150,h:70,d:135,t:'Desert'}
+];
+for(let i=0;i<171;i++){let r=Math.floor(i/19),c=i%19;countries.push({name:'Region '+(i+1),x:315+c*47+(r%2)*8,y:65+r*56,w:38,h:29,d:35+((i*17)%65),t:['Plains','Forest','Desert','Mountains','Snow'][i%5]})}
+
+let S={money:500,level:1,owned:new Set(['United States']),selected:'United States',up:{},slots:2,buildings:{},battles:0,news:['Florida declares independence. The world is confused.'],player:{x:235,y:275},zoom:1,camX:0,camY:0,rocket:false,lunar:false,battle:null};
+const tech=[
+['speed','⚡ Wheel Drive','Faster movement',120,2],['combat','⚔️ Combat Rig','Stronger attacks',180,3],['armor','🛡️ Armor','Reduces damage',160,4],
+['boat','⚓ Boat Attachment','Cross oceans',300,6],['terrain','🏔️ Terrain Kit','Difficult terrain becomes easier',260,7],['slots','➕ Attachment Slot','Adds one physical slot',220,5],
+['air','✈️ Flight Attachment','Fast global travel',900,15],['rocket','🚀 Rocket Attachment','Requires 100% world + maxed chair',5000,30]
+];
+const buildings=[['🏭','Factory',150,5,'Generates income'],['🛠️','Repair Station',100,0,'Improves repairs'],['⚓','Port',250,8,'Improves ocean operations'],['🏙️','City',300,7,'Adds income and population'],['🛣️','Road',75,2,'Improves local movement']];
+
+function title(){let p=S.owned.size/195;if(p>=1)return'Wheelchair World';if(p>=.75)return'Wheelchair Union';if(p>=.5)return'Wheelchair Empire';if(p>=.25)return'Imperialist Wheelchair';if(p>=.08)return'Wheelchair Republic';return'State of Wheelchair'}
+function worldPct(){return S.owned.size/195*100}
+function say(x){S.news.unshift(x);S.news=S.news.slice(0,10);toast(x)}
+function toast(x){let e=document.getElementById('toast');e.textContent=x;e.style.opacity=1;clearTimeout(window.tt);window.tt=setTimeout(()=>e.style.opacity=0,2200)}
+function selectedObj(){return countries.find(c=>c.name===S.selected)||countries[1]}
+function select(c){S.selected=c.name;document.getElementById('selName').textContent=c.name;document.getElementById('selDesc').textContent=S.owned.has(c.name)?'Controlled territory. Build and develop it.':'Independent territory. Scout its defenses.';document.getElementById('selDefense').textContent=c.d;document.getElementById('defMeter').style.width=Math.min(100,c.d/2.2)+'%';document.getElementById('selTerrain').textContent=c.t;render()}
+function draw(){
+ctx.clearRect(0,0,W,H);let sx=W/1200,sy=H/650,scale=Math.min(sx,sy)*S.zoom;
+ctx.save();ctx.translate(W/2,H/2);ctx.scale(scale,scale);ctx.translate(-600+S.camX,-325+S.camY);
+let g=ctx.createLinearGradient(0,0,0,650);g.addColorStop(0,'#78aebe');g.addColorStop(1,'#416d7d');ctx.fillStyle=g;ctx.fillRect(-100,-100,1400,850);
+ctx.fillStyle='#688967';[[40,80,340,270],[355,65,400,215],[500,250,265,330],[755,70,365,250],[760,320,330,300]].forEach(a=>{ctx.beginPath();ctx.roundRect(a[0],a[1],a[2],a[3],70);ctx.fill()});
+countries.forEach(c=>{let own=S.owned.has(c.name),sel=S.selected===c.name;ctx.fillStyle=own?'#4f7853':'#858b88';ctx.strokeStyle=sel?'#fff':own?'#284a2d':'#4e5958';ctx.lineWidth=sel?3:1;ctx.beginPath();ctx.roundRect(c.x,c.y,c.w,c.h,6);ctx.fill();ctx.stroke();if(c.w>55&&c.h>35){ctx.fillStyle='#142018';ctx.font='bold '+Math.max(9,Math.min(13,c.w/6))+'px Arial';ctx.textAlign='center';ctx.fillText(c.name,c.x+c.w/2,c.y+c.h/2)}});
+let p=S.player;ctx.shadowColor='#0009';ctx.shadowBlur=18;ctx.fillStyle='#dce5e9';ctx.beginPath();ctx.arc(p.x,p.y,25,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.font='28px Arial';ctx.textAlign='center';ctx.fillText('🦽',p.x,p.y+8);
+ctx.restore();
+}
+function render(){document.getElementById('empireName').textContent=title();document.getElementById('identitySub').textContent='Florida • '+worldPct().toFixed(2)+'% of world controlled';document.getElementById('money').textContent=Math.floor(S.money).toLocaleString();document.getElementById('level').textContent=S.level;document.getElementById('control').textContent=worldPct().toFixed(2)+'%';document.getElementById('owned').textContent=S.owned.size+' / 195';document.getElementById('slots').textContent=S.slots;document.getElementById('buildingCount').textContent=Object.values(S.buildings).reduce((a,b)=>a+b,0);document.getElementById('rocketStatus').textContent=S.rocket?'Unlocked':'Locked';document.getElementById('news').textContent=S.news[0];document.getElementById('income').textContent='+$'+(S.owned.size*2+Object.values(S.buildings).reduce((a,b)=>a+b,0)*5)+' / 5 sec';document.getElementById('objective').textContent=worldPct()>=100?(S.rocket?'Reach the Moon and defeat the Lunar Boss.':'Max the chair and unlock the rocket.'):(S.level<6?'Expand and reach level 6 to unlock ocean technology.':'Conquer the world, maximize your chair, then reach the Moon.');selectQuiet();draw()}
+function selectQuiet(){let c=selectedObj();document.getElementById('selName').textContent=c.name;document.getElementById('selDesc').textContent=S.owned.has(c.name)?'Controlled territory. Build and develop it.':'Independent territory. Scout its defenses.';document.getElementById('selDefense').textContent=c.d;document.getElementById('defMeter').style.width=Math.min(100,c.d/2.2)+'%';document.getElementById('selTerrain').textContent=c.t}
+
+canvas.addEventListener('click',e=>{if(document.getElementById('modalShade').style.display==='flex')return;let rect=canvas.getBoundingClientRect(),mx=e.clientX, my=e.clientY;let scale=Math.min(W/1200,H/650)*S.zoom;let x=(mx-W/2)/scale+600-S.camX,y=(my-H/2)/scale+325-S.camY;let c=countries.find(c=>x>=c.x&&x<=c.x+c.w&&y>=c.y&&y<=c.y+c.h);if(c){S.selected=c.name;select(c)}});
+canvas.addEventListener('wheel',e=>{S.zoom=Math.max(.65,Math.min(2.5,S.zoom*(e.deltaY<0?1.12:.89)));draw()},{passive:true});
+
+const keys={};addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key===' '&&S.battle)attack()});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+function drive(){if(!S.battle){let sp=1.5+(S.up.speed?1.1:0);if(keys.w||keys.arrowup)S.player.y-=sp;if(keys.s||keys.arrowdown)S.player.y+=sp;if(keys.a||keys.arrowleft)S.player.x-=sp;if(keys.d||keys.arrowright)S.player.x+=sp;S.player.x=Math.max(0,Math.min(1200,S.player.x));S.player.y=Math.max(0,Math.min(650,S.player.y));draw()}requestAnimationFrame(drive)}drive();
+
+function scoutSelected(){let c=selectedObj();if(S.owned.has(c.name))return toast('You already control '+c.name+'.');say('🔎 Scouted '+c.name+'. Defense rating: '+c.d+'.');toast('Scouting complete')}
+function startSelected(){let c=selectedObj();if(S.owned.has(c.name))return toast('Already conquered.');if(c.name==='United States')return toast('Florida is your starting territory.');let cost=Math.max(60,c.d*2);if(S.money<cost)return toast('Need $'+cost+' for this operation.');S.money-=cost;startBattle(c,cost)}
+function startBattle(c,cost){S.battle={country:c,cost,hp:Math.max(100,c.d*2),max:Math.max(100,c.d*2),x:74,y:42,px:25,py:58};document.getElementById('battle').style.display='block';document.getElementById('battleTitle').textContent=c.name+' • DEFENSE '+c.d;updateBattle();toast('Battle started!')}
+function updateBattle(){let b=S.battle;if(!b)return;let sc=document.getElementById('battleScene');sc.innerHTML='<div class="fighter bfPlayer" id="bp" style="left:'+b.px+'%;top:'+b.py+'%">🦽</div><div class="fighter bfEnemy" id="be" style="left:'+b.x+'%;top:'+b.y+'%">⚔️</div>';document.getElementById('battleHP').style.width=(b.hp/b.max*100)+'%'}
+function attack(){let b=S.battle;if(!b)return;let dist=Math.hypot(b.px-b.x,b.py-b.y);if(dist>30){toast('Move closer to attack!');return}b.hp-=30+(S.up.combat?30:0);if(b.hp<=0){S.owned.add(b.country.name);S.level++;S.money+=b.country.d*7;S.battles++;say('📰 BREAKING: Wheelchair forces captured '+b.country.name+'.');endBattle(true);checkRocket();return}b.x+=(b.px-b.x)*.08;b.y+=(b.py-b.y)*.08;updateBattle()}
+function endBattle(won){document.getElementById('battle').style.display='none';S.battle=null;if(won)toast('Territory captured!');render()}
+setInterval(()=>{let inc=S.owned.size*2+Object.values(S.buildings).reduce((a,b)=>a+b,0)*5;S.money+=inc;render()},5000);
+
+function openBuild(){openModal('build')}
+function openModal(type){
+let title='',html='';
+if(type==='tech'){title='🧠 Technology Tree';html='<p class="sub">Every unlock is functional. Rocket requires every country and a maxed chair.</p><div id="techTree">'+tech.map((t,i)=>{let [k,n,d,c,l]=t,un=!!S.up[k],req=S.level>=l&&(k!=='rocket'||S.owned.size>=195);return '<div class="card techNode '+(!un&&!req?'locked':'')+'" onclick="buyTech(\''+k+'\')"><h3>'+n+'</h3><p>'+d+'</p><b>'+(un?'UNLOCKED':req?'$'+c:'Requires Lv '+l)+'</b></div>'+(i<tech.length-1&&i%4!==3?'<div class="arrow">→</div>':'')}).join('')+'</div>'}
+if(type==='custom'){title='🦽 Customization Workshop';html='<div id="workshop"><div class="chairStage" id="chairStage"><div class="chairVisual"><div class="wheel w1"></div><div class="wheel w2"></div><div class="back"></div><div class="bar"></div><div class="seat"></div></div></div><div><h3>Unlocked Parts</h3><div class="dragHint">Drag parts onto the chair. Placement is visual and saved for this session.</div><div id="parts"></div><p class="sub">Slots: '+S.slots+'</p></div></div>'}
+if(type==='stats'){title='📊 Empire Statistics';html='<div class="grid">'+[['World control',worldPct().toFixed(2)+'%'],['Countries',S.owned.size+'/195'],['Chair level',S.level],['Battles won',S.battles],['Buildings',Object.values(S.buildings).reduce((a,b)=>a+b,0)],['Attachment slots',S.slots],['Money earned',Math.floor(S.money).toLocaleString()],['Rocket',S.rocket?'Unlocked':'Locked']].map(x=>'<div class="card"><p>'+x[0]+'</p><h2>'+x[1]+'</h2></div>').join('')+'</div>'}
+if(type==='achievements'){title='🏆 Achievements';let a=[['FIRST RIDE',S.owned.size>1],['BOAT TIME',!!S.up.boat],['CONTINENTAL',S.owned.size>=35],['WHEELCHAIR EMPIRE',S.owned.size>=98],['ONE WORLD',S.owned.size>=195],['TO THE MOON',S.rocket],['LUNAR LANDING',S.lunar],['WHEELCHAIR GOD',S.lunar]];html='<div class="grid">'+a.map(x=>'<div class="card '+(x[1]?'':'locked')+'"><h3>🏆 '+x[0]+'</h3><p>'+(x[1]?'UNLOCKED':'Locked')+'</p></div>').join('')+'</div>'}
+if(type==='build'){let c=selectedObj();title='🏗️ Build in '+c.name;html='<div id="buildings">'+buildings.map(b=>'<div class="buildCard"><h3>'+b[0]+' '+b[1]+'</h3><p class="sub">'+b[4]+'</p><b>$'+b[2]+'</b><br><button style="margin-top:9px" onclick="build(\''+c.name+'\',\''+b[1]+'\','+b[2]+')">Construct</button></div>').join('')+'</div><hr style="margin:18px 0;border-color:#263b46"><p class="sub">Built structures remain part of your empire and increase its income or capabilities.</p>'}
+document.getElementById('modalTitle').textContent=title;document.getElementById('modalContent').innerHTML=html;document.getElementById('modalShade').style.display='flex';
+if(type==='custom')wireDrag();
+}
+function closeModal(){document.getElementById('modalShade').style.display='none'}
+function buyTech(k){let t=tech.find(x=>x[0]===k),[key,n,d,c,l]=t;if(S.up[k])return toast('Already unlocked.');let req=S.level>=l&&(k!=='rocket'||(S.owned.size>=195&&S.level>=30));if(!req)return toast('Requirement not met.');if(S.money<c)return toast('Not enough money.');S.money-=c;S.up[k]=1;if(k==='slots')S.slots++;if(k==='rocket')S.rocket=true;say('🧠 '+n+' unlocked.');render();openModal('tech')}
+function build(country,name,cost){if(S.money<cost)return toast('Not enough money.');S.money-=cost;S.buildings[country]=(S.buildings[country]||0)+1;say('🏗️ Built '+name+' in '+country+'.');render();openBuild()}
+function wireDrag(){document.querySelectorAll('#parts .attachment').forEach(p=>p.addEventListener('dragstart',e=>e.dataTransfer.setData('text/plain',p.textContent)));let stage=document.getElementById('chairStage');stage.addEventListener('dragover',e=>e.preventDefault());stage.addEventListener('drop',e=>{let text=e.dataTransfer.getData('text/plain');if(!text)return;let p=document.createElement('div');p.className='attachment';p.textContent=text;p.style.left=(e.offsetX-35)+'px';p.style.top=(e.offsetY-12)+'px';stage.appendChild(p)})}
+const oldOpenModal=openModal;
+openModal=function(type){oldOpenModal(type);if(type==='custom'){let parts=document.getElementById('parts');if(parts){parts.innerHTML='';Object.keys(S.up).filter(k=>k!=='slots'&&k!=='rocket').forEach(k=>{let t=tech.find(x=>x[0]===k),p=document.createElement('div');p.className='attachment';p.textContent=t?t[1]:k;p.draggable=true;parts.appendChild(p)});wireDrag()}}}
+function centerPlayer(){S.camX=600-S.player.x;S.camY=325-S.player.y;draw();toast('Camera centered')}
+function checkRocket(){if(S.owned.size>=195&&S.level>=30&&!S.rocket)say('🌎 THE WORLD IS YOURS. Max the chair to unlock the rocket.')}
+document.getElementById('joystick').addEventListener('pointerdown',e=>{let j=e.currentTarget,k=document.getElementById('knob'),r=j.getBoundingClientRect();function move(ev){let dx=ev.clientX-(r.left+r.width/2),dy=ev.clientY-(r.top+r.height/2),m=Math.min(38,Math.hypot(dx,dy)),a=Math.atan2(dy,dx);k.style.transform='translate('+(Math.cos(a)*m)+'px,'+(Math.sin(a)*m)+'px)';keys.w=dy<-15;keys.s=dy>15;keys.a=dx<-15;keys.d=dx>15}function up(){keys.w=keys.s=keys.a=keys.d=0;k.style.transform='';removeEventListener('pointermove',move);removeEventListener('pointerup',up)}addEventListener('pointermove',move);addEventListener('pointerup',up);move(e)});
+render();
+</script>
+</body>
+</html>
